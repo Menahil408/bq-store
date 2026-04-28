@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BQ Store — Admin Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    .brand { font-family: 'Syne', sans-serif; }
+    .bg-grid {
+      background-color: #0a0a0f;
+      background-image:
+        linear-gradient(rgba(251,191,36,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(251,191,36,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .orb { position:absolute; border-radius:50%; pointer-events:none; filter:blur(60px); }
+    .glass-card {
+      background: rgba(15,15,20,0.9);
+      border: 1px solid rgba(251,191,36,0.12);
+      backdrop-filter: blur(20px);
+    }
+    .input-field {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #f1f5f9; transition: all 0.2s;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: rgba(251,191,36,0.6);
+      box-shadow: 0 0 0 3px rgba(251,191,36,0.08);
+      background: rgba(251,191,36,0.04);
+    }
+    .input-field::placeholder { color: rgba(156,163,175,0.5); }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      transition: all 0.2s; color: #0a0a0f;
+    }
+    .btn-primary:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 8px 25px rgba(245,158,11,0.35); }
+    .btn-primary:disabled { opacity:0.6; cursor:not-allowed; }
+    @keyframes spin-slow { to { transform:rotate(360deg); } }
+    .spin-slow { animation: spin-slow 8s linear infinite; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    .d1{animation-delay:0.1s;opacity:0} .d2{animation-delay:0.25s;opacity:0} .d3{animation-delay:0.4s;opacity:0}
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+    .animate-shake { animation: shake 0.4s ease; }
+  </style>
+</head>
+<body class="bg-grid min-h-screen flex items-center justify-center relative overflow-hidden">
+
+  <div class="orb" style="width:600px;height:600px;background:radial-gradient(circle,rgba(251,191,36,0.12),transparent 70%);top:-200px;right:-100px"></div>
+  <div class="orb" style="width:400px;height:400px;background:radial-gradient(circle,rgba(239,68,68,0.07),transparent 70%);bottom:-100px;left:-100px"></div>
+  <div class="fixed top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent"></div>
+
+  <div class="glass-card w-full max-w-md mx-4 rounded-3xl p-10 shadow-2xl relative z-10">
+
+    <!-- Brand -->
+    <div class="flex flex-col items-center mb-10 fade-up d1">
+      <div class="relative w-16 h-16 mb-4">
+        <svg class="absolute inset-0 spin-slow" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" stroke="url(#g)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#f59e0b"/><stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+          </linearGradient></defs>
+        </svg>
+        <div class="absolute inset-2 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
+          <span class="text-gray-900 text-xl font-black brand">B</span>
+        </div>
+      </div>
+      <h1 class="text-2xl font-extrabold text-white brand">BQ Store</h1>
+      <p class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Admin Panel</p>
+    </div>
+
+    <div class="mb-8 fade-up d2">
+      <h2 class="text-xl font-bold text-white brand">Welcome back</h2>
+      <p class="text-sm text-gray-400 mt-1">Sign in to manage your store</p>
+    </div>
+
+    <div id="error-box" class="hidden mb-5 flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+      <span class="text-red-400">⚠</span>
+      <p id="error-msg" class="text-red-400 text-sm font-medium"></p>
+    </div>
+
+    <form id="login-form" class="space-y-5 fade-up d3" novalidate>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
+        <input id="email" type="email" placeholder="admin@bqstore.com" autocomplete="email"
+          class="input-field w-full px-4 py-3 rounded-xl text-sm"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+        <div class="relative">
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password"
+            class="input-field w-full px-4 py-3 rounded-xl text-sm pr-12"/>
+          <button type="button"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-400 transition-colors"
+            onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'👁':'🙈'">👁
+          </button>
+        </div>
+      </div>
+      <button id="login-btn" type="submit" class="btn-primary w-full py-3.5 rounded-xl text-sm mt-2">
+        Sign In
+      </button>
+    </form>
+
+    <p class="text-center text-xs text-gray-600 mt-8">BQ Store © 2025 · Secured with Firebase Auth</p>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

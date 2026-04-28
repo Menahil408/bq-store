@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BQ Store — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background-color:#08080d; color:#e2e8f0; }
+    .brand, h1, h2, h3 { font-family:'Syne',sans-serif; }
+    .sidebar { background:#0e0e16; border-right:1px solid rgba(255,255,255,0.06); width:240px; flex-shrink:0; }
+    .topnav { background:rgba(14,14,22,0.9); border-bottom:1px solid rgba(255,255,255,0.06); backdrop-filter:blur(12px); }
+    .stat-card { background:#0e0e16; border:1px solid rgba(255,255,255,0.07); border-radius:20px; transition:all 0.2s; }
+    .stat-card:hover { border-color:rgba(251,191,36,0.25); transform:translateY(-2px); }
+    .form-panel { background:#0e0e16; border:1px solid rgba(255,255,255,0.07); border-radius:20px; }
+    .input-field { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); color:#f1f5f9; border-radius:12px; padding:0.65rem 1rem; font-size:0.875rem; width:100%; transition:all 0.2s; }
+    .input-field:focus { outline:none; border-color:rgba(251,191,36,0.5); background:rgba(251,191,36,0.04); box-shadow:0 0 0 3px rgba(251,191,36,0.07); }
+    .input-field::placeholder { color:rgba(156,163,175,0.5); }
+    .btn-add { background:linear-gradient(135deg,#f59e0b,#d97706); color:#0a0a0f; font-family:'Syne',sans-serif; font-weight:700; border-radius:12px; padding:0.7rem 1.5rem; font-size:0.9rem; transition:all 0.2s; width:100%; }
+    .btn-add:hover:not(:disabled) { box-shadow:0 6px 20px rgba(245,158,11,0.3); transform:translateY(-1px); }
+    .btn-add:disabled { opacity:0.6; cursor:not-allowed; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:0.6rem 1rem; border-radius:10px; font-size:0.875rem; color:#6b7280; cursor:pointer; transition:all 0.15s; font-weight:500; }
+    .nav-item:hover { background:rgba(255,255,255,0.05); color:#e2e8f0; }
+    .nav-item.active { background:rgba(251,191,36,0.1); color:#fbbf24; }
+    @keyframes cardIn { from{opacity:0;transform:scale(0.96) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .product-card { animation:cardIn 0.4s ease forwards; opacity:0; }
+    #toast { transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:3px; }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar flex flex-col h-screen sticky top-0">
+    <div class="px-5 py-6 border-b border-white/5">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20 flex-shrink-0">
+          <span class="text-gray-900 font-black text-base brand">B</span>
+        </div>
+        <div>
+          <p class="text-white font-bold text-sm brand leading-none">BQ Store</p>
+          <p class="text-gray-600 text-xs mt-0.5">Admin Panel</p>
+        </div>
+      </div>
+    </div>
+     
+<nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+      <p class="text-gray-600 text-xs uppercase tracking-widest px-3 mb-3 font-semibold">Menu</p>
+      <div class="nav-item active" onclick="scrollTo({top: 0, behavior: 'smooth'})">
+        <span class="text-base">🏠</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="document.getElementById('products-grid').scrollIntoView({behavior: 'smooth'})">
+        <span class="text-base">📦</span> Products
+      </div>
+      <div class="nav-item" onclick="alert('Analytics feature coming soon!')">
+        <span class="text-base">📊</span> Analytics
+      </div>
+      <div class="nav-item" onclick="alert('Settings feature coming soon!')">
+        <span class="text-base">⚙️</span> Settings
+      </div>
+    </nav>
+
+
+    <div class="px-4 py-5 border-t border-white/5">
+      <div class="bg-white/4 rounded-xl p-3 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0">
+          <span class="text-xs font-bold text-gray-900">AD</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p id="user-email" class="text-white text-xs font-medium truncate">Loading…</p>
+          <p class="text-gray-600 text-xs">Administrator</p>
+        </div>
+      </div>
+      <button id="logout-btn" class="mt-3 w-full flex items-center justify-center gap-2 text-xs text-gray-500 hover:text-red-400 hover:bg-red-500/10 py-2.5 rounded-xl transition-all duration-200 font-medium">
+        <span>⎋</span> Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="topnav px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-white text-lg font-bold brand">Dashboard</h1>
+        <p class="text-gray-500 text-xs">Manage your store inventory</p>
+      </div>
+      <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2 flex items-center gap-2">
+        <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
+        <span class="text-amber-400 text-xs font-semibold">Live</span>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto px-8 py-7">
+      <!-- Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        <div class="stat-card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-gray-500 text-xs uppercase tracking-widest font-semibold">Total Products</p>
+            <div class="w-9 h-9 bg-amber-500/10 rounded-xl flex items-center justify-center"><span>📦</span></div>
+          </div>
+          <p id="total-count" class="text-3xl font-extrabold text-white brand">—</p>
+          <p class="text-gray-600 text-xs mt-1">Items in inventory</p>
+        </div>
+        <div class="stat-card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-gray-500 text-xs uppercase tracking-widest font-semibold">Store Status</p>
+            <div class="w-9 h-9 bg-green-500/10 rounded-xl flex items-center justify-center"><span>🟢</span></div>
+          </div>
+          <p class="text-3xl font-extrabold text-white brand">Active</p>
+          <p class="text-gray-600 text-xs mt-1">Firebase connected</p>
+        </div>
+        <div class="stat-card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-gray-500 text-xs uppercase tracking-widest font-semibold">Database</p>
+            <div class="w-9 h-9 bg-blue-500/10 rounded-xl flex items-center justify-center"><span>🔥</span></div>
+          </div>
+          <p class="text-3xl font-extrabold text-white brand">Cloud</p>
+          <p class="text-gray-600 text-xs mt-1">Firestore · asia-south1</p>
+        </div>
+      </div>
+
+    <!-- Category Management — Professional Design -->
+      <div class="form-panel p-6 mb-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center"><span>🏷️</span></div>
+          <div>
+            <h2 class="text-white font-bold text-base brand">Manage Categories</h2>
+            <p class="text-gray-500 text-xs">Create product categories for organization</p>
+          </div>
+        </div>
+
+        <div id="category-error" class="hidden mb-4 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5"></div>
+
+        <form id="add-category-form" novalidate class="mb-6">
+          <div class="flex gap-4 mb-5">
+            <div class="flex-1">
+              <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2 font-semibold">Category Name *</label>
+              <input id="category-name" type="text" placeholder="e.g. Electronics, Clothing, Books, Furniture" 
+                class="input-field"/>
+            </div>
+            <div class="flex items-end">
+              <button id="add-category-btn" type="submit" class="btn-add px-8">
+                + Add Category
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Categories Grid -->
+        <div>
+          <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-3">Active Categories</p>
+          <div id="categories-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <!-- Categories render here -->
+          </div>
+        </div>
+      </div>
+
+<!-- Add Product Form -->
+      <div class="form-panel p-6 mb-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
+            <span>➕</span>
+          </div>
+          <div>
+            <h2 class="text-white font-bold text-base brand">Add New Product</h2>
+            <p class="text-gray-500 text-xs">Fill the fields below to add to inventory</p>
+          </div>
+        </div>
+
+        <div id="form-error" class="hidden mb-4 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5"></div>
+
+        <form id="add-product-form" novalidate>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+            <div>
+              <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2 font-semibold">Product Name *</label>
+              <input id="product-name" type="text" placeholder="e.g. Wireless Earbuds" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2 font-semibold">Price (PKR) *</label>
+              <input id="product-price" type="number" placeholder="e.g. 2999" min="0" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2 font-semibold">Category (optional)</label>
+              <select id="product-category" class="input-field">
+                <option value="">Select Category…</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2 font-semibold">Image URL (optional)</label>
+              <input id="product-img" type="url" placeholder="https://…" class="input-field" />
+            </div>
+
+<div>
+  <label class="block text-xs text-gray-500 uppercase tracking-wider mb-2 font-semibold">Stock Quantity</label>
+  <input
+    type="number"
+    id="productStock"
+    placeholder="e.g. 50"
+    class="input-field px-4 py-2 text-sm w-full"
+    min="0"
+  />
+</div>
+
+          </div>
+          <div class="flex justify-end">
+            <button id="add-btn" type="submit" class="btn-add md:w-auto md:px-10">
+              + Add Product
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-white font-bold text-base brand">Product Inventory</h2> 
+
+    <input
+           type="text"
+           id="searchInput"
+          placeholder="🔍 Search products..."
+           class="input-field px-4 py-2 text-sm w-64"
+            onkeyup="filterProducts()"
+/>
+
+        <button  class="text-gray-500 hover:text-amber-400 text-xs flex items-center gap-1.5 transition-colors">
+          <span>↻</span> Refresh
+        </button>
+      </div>
+      <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-10"></div>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl z-50 flex items-center gap-2 translate-y-24 opacity-0 bg-amber-500 text-gray-900">
+    <span id="toast-msg"></span>
+  </div>
+
+  <script type="module" src="/src/dashboard.js"></script>
+  <script>tailwind.config = {}</script>
+</body>
+</html>
